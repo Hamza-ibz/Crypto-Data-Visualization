@@ -1,7 +1,8 @@
 # Crypto-Data-Visualization
 
 - I have included an mp4 video file to show the website working and its functionality.
-- I have included a pdf file showing how i created this website in detail.
+- I have included a pdf file (Coursework 2 / Data visualization.pdf) showing how i created this website in detail.
+- The requirements are show in the file "CST3130_Coursework2-DataVisualizationWebsite_V1.0.pdf".
 
 # Summary
 
