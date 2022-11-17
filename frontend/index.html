@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Client</title>
+
+    <link rel="stylesheet" type="text/css" href="index.css" />
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+        </div>
+        <h1>Crypto Visualisation</h1>
+    </nav>
+
+    <main>
+        <div class="panel list">
+
+            <li>
+                <h2>Crypto</h2>
+                <h2>Rate</h2>
+            </li>
+
+            <li>
+                <a href="#BTCDiv"><h4>Bitcoin (BTC)</h4></a>
+                <p id="BTC"></p>
+            </li>
+
+            <li>
+                <a href="#DOGEDiv"><h4>Doge (DOGE)</h4></a>
+                <p id="DOGE"></p>
+            </li>
+
+            <li>
+                <a href="#XLMDiv"><h4>Lumen (XLM)</h4></a>
+                <p id="XLM"></p>
+            </li>
+
+            <li>
+                <a href="#LUNADiv"><h4>Luna (LUNA)</h4></a>
+                <p id="LUNA"></p>
+            </li>
+
+            <li>
+                <a href="#ETHDiv"><h4>Ethereum (ETH)</h4></a>
+                <p id="ETH"></p>
+            </li>
+
+        </div>
+    </main>
+
+    <div id="BTCDiv"></div>
+    <div id="BTCPie"></div>
+
+    <div id="ETHDiv"></div>
+    <div id="ETHPie"></div>
+
+    <div id="DOGEDiv"></div>
+    <div id="DOGEPie"></div>
+
+    <div id="LUNADiv"></div>
+    <div id="LUNAPie"></div>
+
+    <div id="XLMDiv"></div>
+    <div id="XLMPie"></div>
+    
+    <h2 class = "synthTitle" >Synthetic Data</h2>
+    <p class= "synthURL"><a href="https://chart-studio.plotly.com/~Hamza_Ibrahim/0/synthetic-data-for-student-id-m00737296/#/">click here to view the synthetic data</a></p>
+    <img class="synthetic" src="image/synthetic.jpg" />
+</body>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+
+
+    //Open connection
+    let connection = new WebSocket("wss://27wctlrwy0.execute-api.us-east-1.amazonaws.com/prod");
+
+    //Log connected response
+    connection.onopen = function (event) {
+        console.log("Connected: " + JSON.stringify(event));
+        getCryptoData();
+    };
+
+    //Output messages from the server
+    connection.onmessage = function (msg) {
+
+        console.log("Message received.");
+        plotData(JSON.parse(msg.data));
+        // console.log("sdcdc")
+    }
+
+    function plotData(data) {
+        let i = 0
+        // console.log(data)
+        Object.values(data).forEach(currency => {
+
+            let lastItem = currency.actual.y[currency.actual.y.length-1]
+            document.getElementById(""+Object.keys(data)[i]).innerHTML += ("£" + lastItem + "<br />");
+
+            let trace1 = {
+                x: currency.actual.x,
+                y: currency.actual.y,
+                type: 'line',
+                marker: {
+                    color: 'red',
+                    size: 12
+                },
+            };
+
+            let layout = {
+                title: {
+                    text: "" + Object.keys(data)[i],
+                    font: {
+                        family: 'Courier New, monospace',
+                        size: 24,
+                        color: "#fff"
+                    },
+                },
+
+                paper_bgcolor: "#172042",
+                plot_bgcolor: "#172042",
+                showlegend: false,
+                
+                font: {
+                    color: "#6b6f8a"
+                },
+                xaxis: {
+                    title: {
+                        text: 'Time',
+                        font: {
+                            family: 'Courier New, monospace',
+                            size: 18,
+                            color: "#fff",
+                        },
+                    },
+                },
+                yaxis: {
+                    title: {
+                        text: 'Price',
+                        font: {
+                            family: 'Courier New, monospace',
+                            size: 18,
+                            color: "#fff",
+                        },
+                        // pad:-190
+                    },
+                }
+            };
+            let chartDiv = document.getElementById(Object.keys(data)[i] + "Div");
+
+            Plotly.react(chartDiv, [trace1], layout);
+
+            let pieTrace = {
+                values: [
+                    currency.sentiment.positive,
+                    currency.sentiment.negative,
+                    currency.sentiment.mixed,
+                    currency.sentiment.neutral
+                ],
+                labels: ['Positive', 'Negative', 'Mixed', 'Neutral'],
+                type: 'pie'
+            };
+
+            let pieLayout = {
+                title: {
+                    text: "" + Object.keys(data)[i],
+                    font: {
+                        family: 'Courier New, monospace',
+                        size: 24,
+                        color: '#fff',
+                    },
+                },
+                font: {
+                    color: "#6b6f8a"
+                },
+                height: 400,
+                width: 500,
+
+                paper_bgcolor: "#172042",
+                plot_bgcolor:"#172042",
+                piecolorway: ["#ea335d", "#03dcee", "#178add", "purple"],
+                showlegend:false,
+
+            };
+
+            let pieDiv = document.getElementById(Object.keys(data)[i] + "Pie");
+
+            Plotly.react(pieDiv, [pieTrace], pieLayout);
+            i++
+        });
+    }
+
+    //Log errors
+    connection.onerror = function (error) {
+        console.log("WebSocket Error: " + JSON.stringify(error));
+    }
+
+    function getCryptoData() {
+
+        //Create message to be sent to server
+        var msgObject = {
+            action: "sendMessage",
+            data: "getCryptoData"
+        };
+
+        //Send message object
+        connection.send(JSON.stringify(msgObject));
+
+        //Log result
+        console.log("Message sent: " + JSON.stringify(msgObject));
+    }
+
+</script>
+
+</html>
